@@ -1,5 +1,6 @@
 package edu.orangecoastcollege.cs273.tipcalculator;
 
+
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
@@ -8,10 +9,16 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import java.text.NumberFormat;
+
 // Ethan Quach
 // Just puttin' my name here for a little bit so I don't forget the header.
 
 public class MainActivity extends AppCompatActivity {
+
+    // Creating currency number formatting
+    private static NumberFormat currency = NumberFormat.getCurrencyInstance();
+    private static NumberFormat percent = NumberFormat.getPercentInstance();
 
     // Associating controller with needed views
     private TextView amountTextView;
@@ -37,8 +44,16 @@ public class MainActivity extends AppCompatActivity {
         tipAmountTextView = (TextView) findViewById(R.id.tipAmountTextView);
         totalAmountTextView = (TextView) findViewById(R.id.totalAmountTextView);
 
+        // Initializing the views and their associated values
+        currentBill.setTipPercent(percentSeekBar.getProgress() / 100.0);
+        tipAmountTextView.setText(currency.format(currentBill.getTipAmount()));
+        totalAmountTextView.setText(currency.format(currentBill.getTotalAmount()));
+
         // Defining a listener for the amountEditText widget
         amountEditText.addTextChangedListener(amountTextChangedListener);
+
+        // Defining a listener for the percentSeekBar widget
+        percentSeekBar.setOnSeekBarChangeListener(percentChangeListener);
     }
 
     private TextWatcher amountTextChangedListener = new TextWatcher() {
@@ -50,11 +65,16 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
             try {
-                double amount = Double.parseDouble(charSequence.toString()) / 100;
+                double amount = charSequence.length() > 0 ?
+                        Double.parseDouble(charSequence.toString()) / 100 : 0.0;
                 currentBill.setAmount(amount);
             } catch (NumberFormatException e) {
                 amountEditText.setText("");
             }
+
+            // No exceptions; input is valid
+            amountTextView.setText(currency.format(currentBill.getAmount()));
+            updateViews();
         }
 
         @Override
@@ -62,4 +82,29 @@ public class MainActivity extends AppCompatActivity {
             // Do nothing
         }
     };
+
+    private SeekBar.OnSeekBarChangeListener percentChangeListener = new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+            currentBill.setTipPercent(i / 100.0);
+
+            percentTextView.setText(percent.format(currentBill.getTipPercent()));
+            updateViews();
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+            // Do nothing
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            // Do nothing
+        }
+    };
+
+    private void updateViews(){
+        tipAmountTextView.setText(currency.format(currentBill.getTipAmount()));
+        totalAmountTextView.setText(currency.format(currentBill.getTotalAmount()));
+    }
 }
